@@ -11,14 +11,14 @@
     "fileStates": {
         "Level-01.tmx": {
             "expandedObjectLayers": [
-                3,
-                2
+                2,
+                3
             ],
-            "scale": 2,
-            "selectedLayer": 2,
+            "scale": 1.5,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 326.5,
-                "y": 111
+                "x": 322,
+                "y": 78
             }
         },
         "Level-02.tmx": {
@@ -28,7 +28,7 @@
             "scale": 2.409140625,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 295.12598501799783,
+                "x": 320.0311314330188,
                 "y": 183.8829976975711
             }
         },
@@ -49,6 +49,7 @@
         "Level-02.tmx"
     ],
     "project": "Pixel Adventure.tiled-project",
+    "property.type": "float",
     "recentFiles": [
         "Pixel Adventure.tsx",
         "Level-02.tmx",

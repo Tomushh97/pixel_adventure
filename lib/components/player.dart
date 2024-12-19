@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:pixel_adventure/components/collision_block.dart';
 import 'package:pixel_adventure/components/custom_hitbox.dart';
 import 'package:pixel_adventure/components/fruit.dart';
+import 'package:pixel_adventure/components/saw.dart';
 import 'package:pixel_adventure/components/utils.dart';
 import 'package:pixel_adventure/pixel_adventure.dart';
 
@@ -14,6 +15,8 @@ enum PlayerState {
   running,
   jumping,
   falling,
+  hit,
+  appearing,
 }
 
 class Player extends SpriteAnimationGroupComponent
@@ -29,6 +32,8 @@ class Player extends SpriteAnimationGroupComponent
   late final SpriteAnimation runningAnimation;
   late final SpriteAnimation jumpingAnimation;
   late final SpriteAnimation fallingAnimation;
+  late final SpriteAnimation hitAnimation;
+  late final SpriteAnimation appearingAnimation;
   final double stepTime = 0.05;
 
   final double _gravity = 9.8;
@@ -41,6 +46,7 @@ class Player extends SpriteAnimationGroupComponent
   Vector2 startingPosition = Vector2.zero();
   bool isOnGround = false;
   bool hasJumped = false;
+  bool gotHit = false;
   List<CollisionBlock> collisionBlocks = [];
   CustomHitBox hitBox = CustomHitBox(
     offsetX: 10,
@@ -51,18 +57,19 @@ class Player extends SpriteAnimationGroupComponent
 
   @override
   void update(double dt) {
-    _updatePlayerState();
-    _updatePlayerMovement(dt);
-    _checkHorizontalCollisions();
-    _applyGravity(dt);
-    _checkVerticalCollisions();
+    if (!gotHit) {
+      _updatePlayerState();
+      _updatePlayerMovement(dt);
+      _checkHorizontalCollisions();
+      _applyGravity(dt);
+      _checkVerticalCollisions();
+    }
     super.update(dt);
   }
 
   @override
   FutureOr<void> onLoad() {
     _loadAllAnimations();
-    // debugMode = true;
     startingPosition = Vector2(position.x, position.y);
 
     add(RectangleHitbox(
@@ -94,6 +101,8 @@ class Player extends SpriteAnimationGroupComponent
     if (other is Fruit) {
       other.collidedWithPlayer();
     }
+    if (other is Saw) _respawn();
+
     super.onCollision(intersectionPoints, other);
   }
 
@@ -102,12 +111,16 @@ class Player extends SpriteAnimationGroupComponent
     runningAnimation = _spriteAnimation('Run', 12);
     jumpingAnimation = _spriteAnimation('Jump', 1);
     fallingAnimation = _spriteAnimation('Fall', 1);
+    hitAnimation = _spriteAnimation('Hit', 7)..loop = false;
+    appearingAnimation = _specialSpriteAnimation('Appearing', 7)..loop = false;
 
     animations = {
       PlayerState.idle: idleAnimation,
       PlayerState.running: runningAnimation,
       PlayerState.jumping: jumpingAnimation,
       PlayerState.falling: fallingAnimation,
+      PlayerState.hit: hitAnimation,
+      PlayerState.appearing: appearingAnimation,
     };
 
     current = PlayerState.idle;
@@ -121,6 +134,17 @@ class Player extends SpriteAnimationGroupComponent
         amount: frameCount,
         stepTime: stepTime,
         textureSize: Vector2.all(32),
+      ),
+    );
+  }
+
+  SpriteAnimation _specialSpriteAnimation(String playerState, int frameCount) {
+    return SpriteAnimation.fromFrameData(
+      game.images.fromCache('Main Characters/$playerState (96x96).png'),
+      SpriteAnimationData.sequenced(
+        amount: frameCount,
+        stepTime: stepTime,
+        textureSize: Vector2.all(96),
       ),
     );
   }
@@ -212,5 +236,26 @@ class Player extends SpriteAnimationGroupComponent
         }
       }
     }
+  }
+
+  void _respawn() async {
+    gotHit = true;
+    current = PlayerState.hit;
+
+    final hitAnimation = animationTickers![PlayerState.hit];
+
+    hitAnimation!.completed.whenComplete(() {
+      current = PlayerState.appearing;
+      scale.x = 1;
+      position = startingPosition - Vector2.all(32);
+      hitAnimation.reset();
+      final appearingAnimation = animationTickers![PlayerState.appearing];
+      appearingAnimation!.completed.whenComplete(() {
+        position = startingPosition;
+        current = PlayerState.idle;
+        gotHit = false;
+        appearingAnimation.reset();
+      });
+    });
   }
 }
