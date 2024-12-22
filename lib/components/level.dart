@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:pixel_adventure/components/background_tile.dart';
+import 'package:pixel_adventure/components/checkpoint.dart';
 import 'package:pixel_adventure/components/collision_block.dart';
 import 'package:pixel_adventure/components/fruit.dart';
 import 'package:pixel_adventure/components/player.dart';
@@ -39,14 +40,14 @@ class Level extends Component with HasGameRef<PixelAdventure> {
     final numTilesX = (game.size.x / tileSize).floor();
 
     if (backgroundLayer != null) {
-      final bgColor = backgroundLayer.properties.getValue('BackgroundColor');
+      // final bgColor = backgroundLayer.properties.getValue('BackgroundColor');
       for (double y = 0; y < game.size.y / numTilesY; y++) {
         for (double x = 0; x < numTilesX; x++) {
-          final backgroundTile = BackgroundTile(
-            position: Vector2(x * tileSize, y * tileSize - tileSize),
-            color: bgColor,
-          );
-          add(backgroundTile);
+          // final backgroundTile = BackgroundTile(
+          //   // position: Vector2(x * tileSize, y * tileSize - tileSize),
+          //   color: bgColor,
+          // );
+          // add(backgroundTile);
         }
       }
     }
@@ -82,6 +83,12 @@ class Level extends Component with HasGameRef<PixelAdventure> {
             );
             add(saw);
             break;
+          case 'Checkpoint':
+            final checkpoint = Checkpoint(
+              position: Vector2(spawnPoint.x, spawnPoint.y),
+              size: Vector2(spawnPoint.width, spawnPoint.height),
+            );
+            add(checkpoint);
           default:
         }
       }

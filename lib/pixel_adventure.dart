@@ -16,6 +16,8 @@ class PixelAdventure extends FlameGame
   Player player = Player(character: 'Mask Dude');
   late JoystickComponent joystick;
   bool showJoystick = false;
+  List<String> levelNames = ['Level-01', 'Level-02', 'Level-03'];
+  int currentLevelIndex = 0;
 
   late Level _world;
   late TiledComponent level;
@@ -23,12 +25,8 @@ class PixelAdventure extends FlameGame
   FutureOr<void> onLoad() async {
     await images.loadAllImages();
 
-    _world = Level(
-      levelName: 'Level-01',
-      player: player,
-    );
-    camera.viewfinder.anchor = Anchor.topLeft;
-    await add(_world);
+    _loadLevel();
+
     if (showJoystick) {
       addJoystick();
     }
@@ -75,5 +73,28 @@ class PixelAdventure extends FlameGame
         player.horizontalMovement = 0;
         break;
     }
+  }
+
+  void loadNextLevel() {
+    removeWhere((component) => component is Level);
+    if (currentLevelIndex < levelNames.length - 1) {
+      currentLevelIndex++;
+      _loadLevel();
+    } else {
+      // no more levels
+      currentLevelIndex = 0;
+      _loadLevel();
+    }
+  }
+
+  void _loadLevel() async {
+    Future.delayed(const Duration(seconds: 1), () {
+      _world = Level(
+        levelName: levelNames[currentLevelIndex],
+        player: player,
+      );
+      camera.viewfinder.anchor = Anchor.topLeft;
+      add(_world);
+    });
   }
 }
